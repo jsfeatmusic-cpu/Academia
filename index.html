@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Negocio: Números Enteros</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --positive: #2ecc71;
+            --negative: #e74c3c;
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-top: 0;
+        }
+
+        .balance-card {
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .balance-card h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+
+        #balance-amount {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 10px 0 0 0;
+            color: var(--text-main);
+            transition: color 0.3s ease;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            border: 2px solid #ced4da;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #80bdff;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        button:active {
+            opacity: 0.8;
+        }
+
+        .btn-income { background-color: var(--positive); }
+        .btn-expense { background-color: var(--negative); }
+
+        .history {
+            margin-top: 30px;
+        }
+
+        .history h3 {
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 1.1rem;
+            background-color: #fafafa;
+            margin-bottom: 5px;
+            border-radius: 6px;
+        }
+
+        .amount-positive { color: var(--positive); font-weight: bold; }
+        .amount-negative { color: var(--negative); font-weight: bold; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        .status-ok { background-color: #d4edda; color: #155724; }
+        .status-debt { background-color: #f8d7da; color: #721c24; }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <h1>Caja del Negocio</h1>
+        
+        <div class="balance-card">
+            <h2>Caja / Saldo</h2>
+            <p id="balance-amount">$ 0</p>
+            <div id="status-indicator" class="status-badge status-ok">Estado: Sin Deudas</div>
+        </div>
+
+        <div class="form-group">
+            <input type="text" id="descInput" placeholder="¿Qué compraste o vendiste? (Ej: Alfajores)">
+            <input type="number" id="amountInput" placeholder="Monto (Ej: 500)">
+            
+            <div class="buttons">
+                <button class="btn-expense" onclick="addTransaction('expense')">
+                    Pagar / Comprar <br> (-)
+                </button>
+                <button class="btn-income" onclick="addTransaction('income')">
+                    Cobrar / Vender <br> (+)
+                </button>
+            </div>
+        </div>
+
+        <div class="history">
+            <h3>Historial de Movimientos</h3>
+            <ul id="historyList">
+                <!-- Las transacciones aparecerán aquí -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let balance = 0;
+
+        function updateUI() {
+            const balanceEl = document.getElementById('balance-amount');
+            const statusEl = document.getElementById('status-indicator');
+
+            // Actualizar el número en pantalla
+            balanceEl.innerText = `$ ${balance}`;
+
+            // Lógica de Números Enteros: Cambiar colores y estado si es negativo
+            if (balance < 0) {
+                balanceEl.style.color = 'var(--negative)';
+                statusEl.innerText = 'Estado: ¡En Deuda! (Número Negativo)';
+                statusEl.className = 'status-badge status-debt';
+            } else if (balance > 0) {
+                balanceEl.style.color = 'var(--positive)';
+                statusEl.innerText = 'Estado: Con Ganancias (Número Positivo)';
+                statusEl.className = 'status-badge status-ok';
+            } else {
+                balanceEl.style.color = 'var(--text-main)';
+                statusEl.innerText = 'Estado: Caja en Cero';
+                statusEl.className = 'status-badge status-ok';
+            }
+        }
+
+        function addTransaction(type) {
+            const descInput = document.getElementById('descInput');
+            const amountInput = document.getElementById('amountInput');
+            
+            const desc = descInput.value.trim();
+            const amount = parseInt(amountInput.value);
+
+            // Validaciones simples
+            if (desc === '') {
+                alert('Por favor, escribe qué estás comprando o vendiendo.');
+                return;
+            }
+            if (isNaN(amount) || amount <= 0) {
+                alert('Por favor, ingresa un número mayor a cero para el monto.');
+                return;
+            }
+
+            // Calcular el valor real (+ o -) según si es ingreso o gasto
+            const isIncome = type === 'income';
+            const transactionValue = isIncome ? amount : -amount;
+
+            // Sumar o restar al balance total (Aritmética de números enteros)
+            balance += transactionValue;
+
+            // Crear el elemento visual en la lista del historial
+            const listEl = document.getElementById('historyList');
+            const listItem = document.createElement('li');
+            
+            const sign = isIncome ? '+' : '';
+            const amountClass = isIncome ? 'amount-positive' : 'amount-negative';
+
+            listItem.innerHTML = `
+                <span>${desc}</span>
+                <span class="${amountClass}">${sign}${transactionValue}</span>
+            `;
+
+            // Agregar al principio de la lista
+            listEl.insertBefore(listItem, listEl.firstChild);
+
+            // Limpiar los inputs y actualizar la pantalla
+            descInput.value = '';
+            amountInput.value = '';
+            updateUI();
+        }
+
+        // Inicializar la interfaz
+        updateUI();
+    </script>
+
+</body>
+</html>
